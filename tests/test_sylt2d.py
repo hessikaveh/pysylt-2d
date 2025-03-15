@@ -3,7 +3,7 @@ import glfw
 import skia
 from OpenGL import GL
 import sys
-from pysylt_2d import PySyltWorld, PySyltBody
+from pysylt_2d import PySyltWorld, PySyltBody, PySyltJoint
 
 WIDTH, HEIGHT = 640, 480
 FPS = 60
@@ -57,19 +57,39 @@ def skia_surface(window):
 WHITE = skia.ColorWHITE
 RED = skia.ColorRED
 GREEN = skia.ColorGREEN
+BLUE = skia.ColorBLUE
+
+paint = skia.Paint()
 
 # Create the world (with gravity)
 gravity = (0, 9.8)
 world = PySyltWorld(gravity, 10)
 
 # Create bodies
-body1 = PySyltBody((50.0, 50.0), 10.0)
-body1.set_position(50.0, 0.0)
-body3 = PySyltBody((800.0, 40.0), 3.4028235e38)
+body1 = PySyltBody((50.0, 50.0), 30.0)
+body1.set_position(200.0, 20.0)
+body1.set_friction(0.8)
+
+body2 = PySyltBody((35.0, 35.0), 10)
+body2.set_position(2.0, 120.0)
+body2.set_rotation(0.0)
+body2.set_friction(0.2)
+
+body3 = PySyltBody((800.0, 40.0), float("inf"))
 body3.set_position(30.0, 300.0)
 
+body4 = PySyltBody((50.0, 50.0), float("inf"))
+body4.set_position(355.0, 255.0)
+
 world.add_body(body1)
+world.add_body(body2)
 world.add_body(body3)
+world.add_body(body4)
+
+# Create and add joints
+joint1 = PySyltJoint(body2, body3, (110.0, 120.0), world)
+world.add_joint(joint1)
+
 
 with glfw_window() as window:
     with skia_surface(window) as surface:
@@ -96,12 +116,21 @@ with glfw_window() as window:
                     )
 
                     # Draw the rectangle
-                    paint = skia.Paint()
-                    if body.get_id() == 2:
+                    if body.get_id() == 3:
                         paint.setColor(GREEN)
+                    elif body.get_id() == 4:
+                        paint.setColor(BLUE)
                     else:
                         paint.setColor(RED)
                     canvas.drawRect(rect, paint)
+
+                paint.setColor(BLUE)
+                canvas.drawCircle(
+                    110,
+                    120,
+                    1,
+                    paint,
+                )
 
             # Flush and update the display
             surface.flushAndSubmit()

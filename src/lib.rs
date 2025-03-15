@@ -47,6 +47,14 @@ impl PySyltBody {
         self.body.position = Vec2 { x, y }
     }
 
+    pub fn set_rotation(&mut self, rotation: f32) {
+        self.body.rotation = rotation;
+    }
+
+    pub fn set_friction(&mut self, friction: f32) {
+        self.body.friction = friction;
+    }
+
     pub fn get_id(&self) -> usize {
         self.body.id
     }
@@ -76,6 +84,11 @@ impl PySyltWorld {
         self.world.add_body(body.body);
     }
 
+    pub fn add_joint(&mut self, joint: PySyltJoint) {
+        let rc_joint = joint.inner.take();
+        self.world.add_joint(rc_joint.unwrap());
+    }
+
     pub fn step(&mut self, dt: f32) -> PyResult<()> {
         self.world
             .step(dt)
@@ -98,23 +111,22 @@ pub struct PySyltBodyIterator {
 
 #[pymethods]
 impl PySyltBodyIterator {
-    // The `__iter__` method, required for Python iteration protocol
     fn __iter__(slf: PyRef<Self>) -> PyRef<Self> {
-        slf // Return `self` as the iterator
+        slf
     }
 
-    // The `__next__` method, required for Python iteration protocol
     fn __next__(mut slf: PyRefMut<Self>) -> Option<PySyltBody> {
         slf.iter.next().map(|body_rc| {
-            let body = body_rc.borrow().clone(); // Borrow and clone the Body
-            PySyltBody { body } // Wrap the cloned Body in a PySyltBody
+            let body = body_rc.borrow().clone();
+            PySyltBody { body }
         })
     }
 }
 
 #[pyclass(unsendable)]
+#[derive(Clone)]
 pub struct PySyltJoint {
-    inner: Joint,
+    inner: Rc<RefCell<Option<Joint>>>,
 }
 
 #[pymethods]
@@ -127,7 +139,7 @@ impl PySyltJoint {
         world: &PySyltWorld,
     ) -> Self {
         PySyltJoint {
-            inner: Joint::new(
+            inner: Rc::new(RefCell::new(Some(Joint::new(
                 body_1.body,
                 body_2.body,
                 Vec2 {
@@ -135,7 +147,7 @@ impl PySyltJoint {
                     y: anchor.1,
                 },
                 &world.world,
-            ),
+            )))),
         }
     }
 }
