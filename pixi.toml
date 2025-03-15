@@ -1,0 +1,19 @@
+[project]
+name = "pysylt-2d"
+version = "0.1.0"
+description = "Python wrapper for sylt-2d game phsyics library"
+authors = ["Sam Kaveh <hesam.kaveh@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
+
+[tasks]
+
+[dependencies]
+maturin = "1.7.*"
+python = ">=3.11,<3.12"
+pyglfw = ">=2.8.0,<3"
+pyopengl = ">=3.1.7,<4"
+pip = ">=25.0.1,<26"
+
+[pypi-dependencies]
+skia-python = ">=87"
